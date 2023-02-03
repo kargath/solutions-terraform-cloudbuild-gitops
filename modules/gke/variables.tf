@@ -26,5 +26,5 @@ variable "location" {
 }
 
 variable "region" {
-    default = "us-central"
+    default = "us-central1"
 }
