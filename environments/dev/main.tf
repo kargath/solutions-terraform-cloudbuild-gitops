@@ -43,5 +43,5 @@ module "gke" {
   source  = "../../modules/gke"
   project = "${var.project}"
   env     = "${local.env}"
-  region  = "${local.region}"
+  region  = "${var.region}"
 }
