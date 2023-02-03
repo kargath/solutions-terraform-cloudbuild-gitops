@@ -38,3 +38,9 @@ module "firewall" {
   project = "${var.project}"
   subnet  = "${module.vpc.subnet}"
 }
+
+module "gke" {
+  source  = "../../modules/gke"
+  project = "${var.project}"
+  env     = "${local.env}"
+}

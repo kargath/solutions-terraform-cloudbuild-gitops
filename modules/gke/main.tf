@@ -1,19 +1,8 @@
-variable "gke_username" {
-  default     = ""
-  description = "gke username"
-}
-variable "gke_password" {
-  default     = ""
-  description = "gke password"
-}
-variable "gke_num_nodes" {
-  default     = 2
-  description = "number of gke nodes"
-}
+
 # GKE cluster
 resource "google_container_cluster" "primary" {
-  name     = "${var.project}-gke"
-  location = "us-central1-a"
+  name     = "${var.project}-gke-${var.env}"
+  location = "${var.location}"
   
   # We can't create a cluster with no node pool defined, but we want to only use
   # separately managed node pools. So we create the smallest possible default
@@ -23,10 +12,11 @@ resource "google_container_cluster" "primary" {
   network    = google_compute_network.vpc.name
   subnetwork = google_compute_subnetwork.subnet.name
 }
+
 # Separately Managed Node Pool
 resource "google_container_node_pool" "primary_nodes" {
-  name       = "node-pool-managed"
-  location   = "us-central1-a"
+  name       = "node-pool-managed-${var.env}"
+  location   = "${var.location}"
   cluster    = google_container_cluster.primary.name
   node_count = var.gke_num_nodes
   node_config {
@@ -40,9 +30,23 @@ resource "google_container_node_pool" "primary_nodes" {
     # preemptible  = true
     machine_type = "n1-standard-1"
     disk_size_gb = 50
-    tags         = ["gke-node", "${var.project}-gke"]
+    tags         = ["gke-node", "${var.project}-gke", "${var.env}"]
     metadata = {
       disable-legacy-endpoints = "true"
     }
   }
+}
+
+# VPC
+resource "google_compute_network" "vpc" {
+  name                    = "${var.project}-vpc-${var.env}"
+  auto_create_subnetworks = "false"
+}
+
+# Subnet
+resource "google_compute_subnetwork" "subnet" {
+  name          = "${var.project}-subnet-${var.env}"
+  region        = "${var.region}"
+  network       = google_compute_network.vpc.name
+  ip_cidr_range = "10.10.0.0/24"
 }
